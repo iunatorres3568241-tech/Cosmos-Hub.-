@@ -1,0 +1,155 @@
+-- [[ COSMOS HUB V14 - SINGULARITY ]] --
+-- VERSÃO: DEEP BLUE NEON PULSATING
+-- CRÉDITOS: FEITO POR HANNA
+
+local L_Players = game:GetService("Players")
+local L_LocalPlayer = L_Players.LocalPlayer
+local L_RunService = game:GetService("RunService")
+local L_TweenService = game:GetService("TweenService")
+local L_Http = game:GetService("HttpService")
+
+-- 🛡️ [PROTEÇÃO PHANTOM ANTI-DETECÇÃO]
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
+local old = mt.__namecall
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if not checkcaller() and (method == "Kick" or method == "FireServer") then
+        if tostring(self) == "MainEvent" or method == "Kick" then return nil end
+    end
+    return old(self, ...)
+end)
+setreadonly(mt, true)
+
+-- 🌌 [INTERFACE E BOTÃO ORBITAL]
+local CosmosUI = Instance.new("ScreenGui", game:GetService("CoreGui"))
+CosmosUI.Name = "Cosmos_"..L_Http:GenerateGUID(false)
+
+local MainFrame = Instance.new("Frame", CosmosUI)
+MainFrame.Size = UDim2.new(0, 300, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(2, 4, 15) -- Midnight Blue
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+
+-- Borda Neon com Efeito Pulsante
+local NeonStroke = Instance.new("UIStroke", MainFrame)
+NeonStroke.Color = Color3.fromRGB(0, 100, 255)
+NeonStroke.Thickness = 2.5
+
+task.spawn(function()
+    while task.wait(0.05) do
+        local t = tick()
+        local p = (math.sin(t * 3) + 1) / 2
+        NeonStroke.Color = Color3.fromRGB(0, 80 + (p * 175), 255)
+        NeonStroke.Thickness = 2 + (p * 1.5)
+    end
+end)
+
+-- Botão Flutuante (Via Láctea) com Pulsação
+local Orb = Instance.new("ImageButton", CosmosUI)
+Orb.Size = UDim2.new(0, 65, 0, 65)
+Orb.Position = UDim2.new(0, 20, 0.2, 0)
+Orb.Image = "rbxassetid://159454289"
+Orb.BackgroundTransparency = 1
+Orb.Active = true
+Orb.Draggable = true
+Instance.new("UICorner", Orb).CornerRadius = UDim.new(1, 0)
+
+local OrbStroke = Instance.new("UIStroke", Orb)
+OrbStroke.Color = Color3.fromRGB(0, 190, 255)
+OrbStroke.Thickness = 3
+
+Orb.MouseButton1Click:Connect(function() 
+    MainFrame.Visible = not MainFrame.Visible 
+end)
+
+-- 🎭 [VINHETA PERSONALIZADA: FEITO POR HANNA]
+local function PlayIntro()
+    local IntroText = Instance.new("TextLabel", CosmosUI)
+    IntroText.Size = UDim2.new(1, 0, 0, 100)
+    IntroText.Position = UDim2.new(0, 0, 0.4, 0)
+    IntroText.Text = "Feito Por Hanna"
+    IntroText.TextColor3 = Color3.fromRGB(0, 180, 255)
+    IntroText.TextSize = 55
+    IntroText.Font = Enum.Font.GothamBold
+    IntroText.BackgroundTransparency = 1
+    IntroText.TextTransparency = 1
+    
+    local s = Instance.new("Sound", game.CoreGui)
+    s.SoundId = "rbxassetid://4595350440"
+    s.Volume = 2
+    s:Play()
+
+    task.spawn(function()
+        for i = 1, 0, -0.1 do IntroText.TextTransparency = i task.wait(0.05) end
+        task.wait(2.5)
+        for i = 0, 1, 0.1 do IntroText.TextTransparency = i task.wait(0.05) end
+        IntroText:Destroy()
+        s:Destroy()
+    end)
+end
+
+-- 🎯 [SISTEMA DE ALVO]
+local SelectedTarget = nil
+local TargetTxt = Instance.new("TextLabel", MainFrame)
+TargetTxt.Size = UDim2.new(1, 0, 0, 30)
+TargetTxt.Position = UDim2.new(0, 0, 0, 50)
+TargetTxt.Text = "ALVO: NENHUM"
+TargetTxt.TextColor3 = Color3.fromRGB(0, 200, 255)
+TargetTxt.BackgroundTransparency = 1
+TargetTxt.Font = Enum.Font.GothamBold
+
+-- 🔘 [GERADOR DE BOTÕES NEON]
+local function AddBtn(text, y, func)
+    local b = Instance.new("TextButton", MainFrame)
+    b.Size = UDim2.new(0.9, 0, 0, 38)
+    b.Position = UDim2.new(0.05, 0, 0, y)
+    b.Text = text
+    b.BackgroundColor3 = Color3.fromRGB(10, 20, 50)
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamSemibold
+    Instance.new("UICorner", b)
+    local s = Instance.new("UIStroke", b)
+    s.Color = Color3.fromRGB(0, 80, 200)
+    b.MouseButton1Click:Connect(func)
+end
+
+AddBtn("🎯 SELECIONAR PRÓXIMO", 95, function()
+    local dist = math.huge
+    for _, p in pairs(L_Players:GetPlayers()) do
+        if p ~= L_LocalPlayer and p.Character then
+            local d = L_LocalPlayer:DistanceFromCharacter(p.Character.Head.Position)
+            if d < dist then dist = d SelectedTarget = p end
+        end
+    end
+    TargetTxt.Text = "ALVO: " .. (SelectedTarget and SelectedTarget.Name or "ERRO")
+end)
+
+AddBtn("☣️ CATACLYSM FLING", 145, function()
+    if not SelectedTarget or not SelectedTarget.Character then return end
+    local hrp = L_LocalPlayer.Character.HumanoidRootPart
+    local loop = L_RunService.Heartbeat:Connect(function()
+        if not SelectedTarget or not SelectedTarget.Parent then return end
+        hrp.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
+        hrp.Velocity = Vector3.new(9e5, 9e5, 9e5)
+    end)
+    task.wait(2)
+    loop:Disconnect()
+    hrp.Velocity = Vector3.new(0,0,0)
+end)
+
+-- 🎹 [RADIO GLOBAL: OS BARÕES]
+local function Play(id)
+    local r = game:GetService("ReplicatedStorage").RE:FindFirstChild("1Property1Music1Z")
+    if r then r:FireServer("MusicId", tostring(id)) end
+end
+
+AddBtn("🔥 RECAIREI", 210, function() Play("5928801974") end)
+AddBtn("🔥 TÁ ROCHEDA", 260, function() Play("4839845345") end)
+AddBtn("❌ PARAR MÚSICA", 350, function() Play("0") end)
+
+-- [INICIALIZAÇÃO]
+PlayIntro()
